@@ -1,0 +1,12 @@
+GET http://localhost:4567/spin/DEFAULT
+Content-Type: application/json
+
+####
+
+GET http://localhost:4567/result
+Content-Type: application/json
+
+####
+
+GET http://localhost:4567/result/DEFAULT
+Content-Type: application/json
