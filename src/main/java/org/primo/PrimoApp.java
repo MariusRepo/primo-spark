@@ -4,9 +4,7 @@ import org.hibernate.SessionFactory;
 import org.primo.controller.PrimoController;
 import org.primo.exceptions.PrimoExceptionHandler;
 import org.primo.repositories.GameSpinRepository;
-import org.primo.repositories.GameSpinRepositoryImpl;
 import org.primo.repositories.PlayerRepository;
-import org.primo.repositories.PlayerRepositoryImpl;
 import org.primo.service.PrimoService;
 import spark.Spark;
 
@@ -18,8 +16,8 @@ public class PrimoApp {
     public static void main(String[] args) {
         SessionFactory sessionFactory = getSessionFactory();
 
-        GameSpinRepository gameSpinRepository = new GameSpinRepositoryImpl(sessionFactory);
-        PlayerRepository playerRepository = new PlayerRepositoryImpl(sessionFactory);
+        GameSpinRepository gameSpinRepository = new GameSpinRepository(sessionFactory);
+        PlayerRepository playerRepository = new PlayerRepository(sessionFactory);
 
         PrimoService primoService = new PrimoService(gameSpinRepository, playerRepository);
 

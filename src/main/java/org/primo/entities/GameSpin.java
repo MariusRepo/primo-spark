@@ -1,65 +1,57 @@
 package org.primo.entities;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
-import java.util.UUID;
-
-import static org.primo.PrimoUtils.createUUIDReference;
+import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "game_spin")
 @Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "game_spins")
 public class GameSpin {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "playerId")
+    @JoinColumn(name = "player_id", nullable = false)
     private Player player;
-    private int number;
+
+    @Column(name = "reference_token", length = 64)
+    private String referenceToken;
+
+    @Column(name = "server_seed", length = 64, nullable = false)
+    private String serverSeed;
+
+    @Column(name = "client_seed", length = 64, nullable = false)
+    private String clientSeed;
+
+    @Column(name = "nonce", nullable = false)
+    private int nonce;
+
+    @Column(name = "win")
     private boolean win;
-    private String reference;
-    private String hashCode;
 
-    @PrePersist
-    protected void onCreate() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
-        if (reference == null){
-            reference = createUUIDReference(id);
-        }
-    }
+    @Column(name = "result", nullable = false)
+    private int result;
 
-    public GameSpin() {
-    }
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    public GameSpin(Player player, int number, boolean win, String hashCode) {
+    public GameSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, boolean win, String referenceToken, LocalDateTime createdAt) {
         this.player = player;
-        this.number = number;
+        this.serverSeed = serverSeed;
+        this.clientSeed = clientSeed;
+        this.nonce = nonce;
+        this.result = result;
         this.win = win;
-        this.hashCode = hashCode;
+        this.referenceToken = referenceToken;
+        this.createdAt = createdAt;
     }
 
-    @Override
-    public String toString() {
-        return "GameSpin{" +
-                "id=" + id +
-                ", number=" + number +
-                ", win=" + win +
-                ", hashCode='" + hashCode + '\'' +
-                '}';
-    }
 }

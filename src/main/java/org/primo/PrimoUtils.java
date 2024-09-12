@@ -46,9 +46,9 @@ public class PrimoUtils {
 
     // Generate a random number between 1 and 20 using the secure hash function
     @SneakyThrows
-    public static int generateRandomNumber(String serverSeed, String clientSeed, int nonce) {
+    public static int generateSecureNumber(String serverSeed, String clientSeed, int nonce) {
         String hash = hash(serverSeed + clientSeed + nonce);
-        return (int) (Long.parseLong(hash.substring(0, 8), 16) % 20) + 1; // Convert hash to a number and ensure it's between 1 and 20
+        return (int) (Long.parseLong(hash.substring(0, 8), 16) % 20) + 1; // Convert hash to a number between 1 and 20
     }
 
     // Generate a random nonce
@@ -57,10 +57,14 @@ public class PrimoUtils {
     }
 
     // Will create a shorter UUID as a reference based on the first 3 characters of each group
-    public static String createUUIDReference(UUID reference) {
+    public static String createShortUUIDReference(UUID reference) {
         return Arrays.stream(reference.toString().split("-"))
                 .map(part -> part.substring(0, Math.min(3, part.length())).toUpperCase())
                 .collect(Collectors.joining());
+    }
+
+    public static String generateSpinToken() {
+        return createShortUUIDReference(UUID.randomUUID());
     }
 
 }

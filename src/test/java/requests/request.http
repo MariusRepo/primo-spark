@@ -1,12 +1,16 @@
-GET http://localhost:4567/spin/DEFAULT
+POST http://localhost:4567/api/v1/spin?username=DEFAULT&clientSeed=RANDOMSEED
 Content-Type: application/json
 
 ####
 
-GET http://localhost:4567/result
+GET http://localhost:4567/api/v1/result
 Content-Type: application/json
 
 ####
 
-GET http://localhost:4567/result/DEFAULT
+GET http://localhost:4567/api/v1/result/DEFAULT
+Content-Type: application/json
+
+####
+GET http://localhost:4567/api/v1/status?username=DEFAULT&token=27D9454EFA8A251
 Content-Type: application/json

@@ -1,25 +1,25 @@
 package org.primo.service;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.jetbrains.annotations.NotNull;
 import org.primo.entities.GameSpin;
 import org.primo.entities.Play;
 import org.primo.entities.Player;
 import org.primo.exceptions.PlayerException;
-import org.primo.repositories.GameSpinRepository;
 import org.primo.repositories.PlayerRepository;
+import org.primo.repositories.GameSpinRepository;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static org.primo.PrimoUtils.createUUIDReference;
 import static org.primo.PrimoUtils.generateRandomNonce;
-import static org.primo.PrimoUtils.generateRandomNumber;
 import static org.primo.PrimoUtils.generateRandomSeed;
+import static org.primo.PrimoUtils.generateSecureNumber;
+import static org.primo.PrimoUtils.generateSpinToken;
 import static org.primo.PrimoUtils.isPrime;
-import static org.primo.config.HibernateConfig.getSessionFactory;
 
 public class PrimoService {
 
@@ -28,68 +28,81 @@ public class PrimoService {
     private final GameSpinRepository gameSpinRepository;
     private final PlayerRepository playerRepository;
 
+    private final ExecutorService executorService;
+
     public PrimoService(GameSpinRepository gameSpinRepository, PlayerRepository playerRepository) {
         this.gameSpinRepository = gameSpinRepository;
         this.playerRepository = playerRepository;
+        this.executorService = Executors.newFixedThreadPool(11);
     }
 
-    public Play spin(String playerName) {
-        Player player = playerRepository.findByPlayerName(playerName);
-        if (player == null) {
-            throw new PlayerException("Player is missing!");
-        }
+    public String spin(String playerName, String clientSeed) {
+        Player player = Optional.ofNullable(playerRepository.findByPlayerName(playerName))
+                .get()
+                .orElseThrow(() -> new PlayerException("Player is missing!"));
 
-        // Game play
-        String serverSeed = generateRandomSeed();
-        String clientSeed = generateRandomSeed(); // this is
+        // For simplicity, I will generate this number randomly
+        // I would recommend to have it incremental with DB
         int nonce = generateRandomNonce();
-        int result = generateRandomNumber(serverSeed, clientSeed, nonce);
-        boolean isPrime = isPrime(result);
+        String serverSeed = generateRandomSeed();
 
-        // DB transactions atomic and asynchronous
-        asyncDBUpdate(player, serverSeed, clientSeed, nonce, result, isPrime);
+        int result = generateSecureNumber(serverSeed, clientSeed, nonce);
 
-        return new Play(playerName, createUUIDReference(UUID.randomUUID()), result, isPrime ? WIN : LOSS);
+        // Update DB asynchronously and atomic
+        return recordSpinDetails(player, serverSeed, clientSeed, nonce, result);
     }
 
-    private void asyncDBUpdate(Player player, String serverSeed, String clientSeed, int nonce, int result, boolean isPrime){
+    public List<Play> allSpins() {
+        return spinsToPlays(gameSpinRepository.getAllSpins());
+    }
+
+    public List<Play> playerSpins(String playerName) {
+        return spinsToPlays(gameSpinRepository.findByUserName(playerName));
+    }
+
+    public Play spinToPlay(GameSpin gameSpins) {
+        return new Play(gameSpins.getPlayer().getPlayerName(), gameSpins.getReferenceToken(), gameSpins.getResult(), gameSpins.isWin() ? WIN : LOSS);
+    }
+
+    public List<Play> spinsToPlays(@NotNull List<GameSpin> gameSpins) {
+        return gameSpins.stream()
+                .map(this::spinToPlay)
+                .collect(Collectors.toList());
+    }
+
+    public Play checkSpinStatus(String playerName, String spinToken) {
+        return gameSpinRepository.findSpinByTokenAndPlayerName(spinToken, playerName)
+                .map(this::spinToPlay)
+                .orElse(null); // TODO - Not ready or missing
+    }
+
+    private String recordSpinDetails(Player player, String serverSeed, String clientSeed, int nonce, int result) {
+        String spinToken = generateSpinToken();
+        CompletableFuture.runAsync(() -> processGameSpin(player, serverSeed, clientSeed, nonce, result, spinToken), executorService);
+        return spinToken;
+    }
+
+    private void processGameSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, String spinToken) {
+        boolean isPrime = isPrime(result);
         updatePlayerStats(player, isPrime);
+
         AsyncProcessor.submitTask(() -> {
+            pause(10);
             try {
-                saveSpin(player, serverSeed, clientSeed, nonce, result, isPrime);
+                gameSpinRepository.recordSpin(player, serverSeed, clientSeed, nonce, result, isPrime, spinToken);
             } catch (Exception e) {
                 e.printStackTrace(); // TODO - Error handling
             }
         });
     }
 
-    private void saveSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, boolean isPrime) {
-        try (Session session = getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            try {
-                updatePlayerStats(player, isPrime);
-                gameSpinRepository.recordSpin(player, serverSeed, clientSeed, nonce, result, isPrime, session);
-                playerRepository.save(player, session);
-                tx.commit();
-            } catch (Exception e) {
-                if (tx != null) tx.rollback();
-                throw e; // TODO - Error handling
-            }
+    // Simulate a delay
+    private void pause(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-    }
-
-    public List<Play> results() {
-        return spinToPlay(gameSpinRepository.getAllSpins());
-    }
-
-    public List<Play> result(String playerName) {
-        return spinToPlay(gameSpinRepository.findByUserName(playerName));
-    }
-
-    public List<Play> spinToPlay(@NotNull List<GameSpin> gameSpins) {
-        return gameSpins.stream()
-                .map(s -> new Play(s.getPlayer().getPlayerName(), s.getReference(), s.getNumber(), s.isWin() ? WIN : LOSS))
-                .collect(Collectors.toList());
     }
 
     private void updatePlayerStats(@NotNull Player player, boolean isPrime) {

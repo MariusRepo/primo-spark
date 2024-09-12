@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import spark.Response;
 
 public class ResponseBuilder {
+
     private static final Gson gson = new Gson();
 
     public static String buildSuccessResponse(Response res, Object body) {

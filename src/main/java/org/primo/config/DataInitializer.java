@@ -5,9 +5,16 @@ import org.hibernate.Transaction;
 import org.primo.entities.GameSpin;
 import org.primo.entities.Player;
 
+import java.time.LocalDateTime;
+
+import static org.primo.PrimoUtils.generateRandomNonce;
+import static org.primo.PrimoUtils.generateRandomSeed;
+import static org.primo.PrimoUtils.generateSecureNumber;
+import static org.primo.PrimoUtils.generateSpinToken;
+import static org.primo.PrimoUtils.isPrime;
 import static org.primo.config.HibernateConfig.getSessionFactory;
 
-// Demo purpose
+// Demo purpose: Load some data for testing
 public class DataInitializer {
 
     public static void addDBUsers() {
@@ -15,30 +22,41 @@ public class DataInitializer {
             Transaction tx = session.beginTransaction();
 
             // Import default users
-            Player user1 = new Player();
-            user1.setPlayerName("Player1");
-            user1.setWins(12);
-            user1.setLosses(11);
-            user1.setTotalSpins(23);
-
-            Player user2 = new Player();
-            user2.setPlayerName("Player2");
-            user2.setLosses(0);
-            user2.setTotalSpins(2);
-            user2.setWins(2);
-
+            Player user1 = new Player("Player1",23,11,12);
+            Player user2 = new Player("Player2",2,2,0);
             session.save(user1);
             session.save(user2);
             session.save(new Player("DEFAULT"));
 
             // Import game spins
-            GameSpin gameSpin = new GameSpin(user1, 3, true, "HHHH");
-            GameSpin gameSpin2 = new GameSpin(user2, 5, true, "HHHH");
+            String client = generateRandomSeed();
+            String server = generateRandomSeed();
+            int nunce = generateRandomNonce();
+            int result = generateSecureNumber(client,server,nunce);
+            boolean isPrime = isPrime(result);
+
+            GameSpin gameSpin = new GameSpin(user1, client, server, nunce, result, isPrime, generateSpinToken(), LocalDateTime.now());
+
+            String client2 = generateRandomSeed();
+            String server2 = generateRandomSeed();
+            int nunce2 = generateRandomNonce();
+            int result2 = generateSecureNumber(client,server,nunce);
+            boolean isPrime2 = isPrime(result2);
+            GameSpin gameSpin2 = new GameSpin(user2, client2, server2, nunce2, result2, isPrime2, generateSpinToken(),  LocalDateTime.now());
+
+            String client3 = generateRandomSeed();
+            String server3 = generateRandomSeed();
+            int nunce3 = generateRandomNonce();
+            int result3 = generateSecureNumber(client,server,nunce);
+            boolean isPrime3 = isPrime(result2);
+            GameSpin gameSpin3 = new GameSpin(user2, client3, server3, nunce3, result3, isPrime3, "1876AE415BCF03B",  LocalDateTime.now());
 
             session.save(gameSpin);
             session.save(gameSpin2);
+            session.save(gameSpin3);
 
             tx.commit();
+
         }
     }
 }
