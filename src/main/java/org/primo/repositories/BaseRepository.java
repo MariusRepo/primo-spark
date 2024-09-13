@@ -3,6 +3,7 @@ package org.primo.repositories;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;

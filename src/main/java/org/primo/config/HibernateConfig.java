@@ -16,17 +16,13 @@ public class HibernateConfig {
         try {
             Configuration configuration = new Configuration();
             configuration.setProperties(getHibernateProperties());
-
-            // Register entity classes
             configuration.addAnnotatedClass(Player.class);
             configuration.addAnnotatedClass(GameSpin.class);
 
-            // Build the ServiceRegistry from the configuration
             StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
                     .build();
 
-            // Create the SessionFactory from the ServiceRegistry
             return configuration.buildSessionFactory(serviceRegistry);
         } catch (Throwable ex) {
             throw new ExceptionInInitializerError("Initial SessionFactory creation failed: " + ex);

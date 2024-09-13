@@ -2,11 +2,14 @@ package org.primo.service;
 
 import org.jetbrains.annotations.NotNull;
 import org.primo.entities.GameSpin;
-import org.primo.entities.Play;
+import org.primo.entities.GameSpinDTO;
 import org.primo.entities.Player;
+import org.primo.entities.PlayerDTO;
+import org.primo.exceptions.ParameterException;
 import org.primo.exceptions.PlayerException;
 import org.primo.repositories.PlayerRepository;
 import org.primo.repositories.GameSpinRepository;
+import org.primo.exceptions.SpinException;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +18,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static org.primo.PrimoUtils.generateRandomNonce;
-import static org.primo.PrimoUtils.generateRandomSeed;
-import static org.primo.PrimoUtils.generateSecureNumber;
-import static org.primo.PrimoUtils.generateSpinToken;
-import static org.primo.PrimoUtils.isPrime;
+import static org.primo.utils.PrimoUtils.generateRandomNonce;
+import static org.primo.utils.PrimoUtils.generateRandomSeed;
+import static org.primo.utils.PrimoUtils.generateSecureNumber;
+import static org.primo.utils.PrimoUtils.generateSpinToken;
+import static org.primo.utils.PrimoUtils.isPrime;
 
 public class PrimoService {
 
@@ -52,28 +55,56 @@ public class PrimoService {
         return recordSpinDetails(player, serverSeed, clientSeed, nonce, result);
     }
 
-    public List<Play> allSpins() {
-        return spinsToPlays(gameSpinRepository.getAllSpins());
+    public List<GameSpinDTO> allSpins() {
+        return spinToDTO(gameSpinRepository.getAllSpins());
     }
 
-    public List<Play> playerSpins(String playerName) {
-        return spinsToPlays(gameSpinRepository.findByUserName(playerName));
+    public List<GameSpinDTO> playerSpins(String playerName) {
+        return spinToDTO(gameSpinRepository.findByUserName(playerName));
     }
 
-    public Play spinToPlay(GameSpin gameSpins) {
-        return new Play(gameSpins.getPlayer().getPlayerName(), gameSpins.getReferenceToken(), gameSpins.getResult(), gameSpins.isWin() ? WIN : LOSS);
+    public GameSpinDTO spinToDTO(GameSpin gameSpins) {
+        return new GameSpinDTO(gameSpins.getPlayer().getPlayerName(), gameSpins.getReferenceToken(), gameSpins.getResult(), gameSpins.isWin() ? WIN : LOSS);
     }
 
-    public List<Play> spinsToPlays(@NotNull List<GameSpin> gameSpins) {
+    public List<GameSpinDTO> spinToDTO(@NotNull List<GameSpin> gameSpins) {
         return gameSpins.stream()
-                .map(this::spinToPlay)
+                .map(this::spinToDTO)
                 .collect(Collectors.toList());
     }
 
-    public Play checkSpinStatus(String playerName, String spinToken) {
+    public PlayerDTO playerToDTO(Player player) {
+        return new PlayerDTO(player.getPlayerName(), player.getTotalSpins(), player.getWins(), player.getWins());
+    }
+
+    public List<PlayerDTO> playerToDTO(@NotNull List<Player> players) {
+        return players.stream()
+                .map(this::playerToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public GameSpinDTO checkSpinStatus(String playerName, String spinToken) {
         return gameSpinRepository.findSpinByTokenAndPlayerName(spinToken, playerName)
-                .map(this::spinToPlay)
-                .orElse(null); // TODO - Not ready or missing
+                .map(this::spinToDTO)
+                .orElseThrow(() -> new SpinException("Spin is missing or processing ..."));
+    }
+
+    public PlayerDTO playerDetails(String playerName) {
+        return playerRepository.findByPlayerName(playerName)
+                .map(this::playerToDTO)
+                .orElseThrow(() -> new PlayerException("Player is missing!"));
+    }
+
+    public List<PlayerDTO> playersDetails() {
+        return playerRepository.getAllPlayers().stream()
+                .map(this::playerToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public String validateParam(String paramValue, String errorMessage) {
+        return Optional.ofNullable(paramValue)
+                .filter(s -> !s.trim().isEmpty())
+                .orElseThrow(() -> new ParameterException(errorMessage));
     }
 
     private String recordSpinDetails(Player player, String serverSeed, String clientSeed, int nonce, int result) {
@@ -83,26 +114,15 @@ public class PrimoService {
     }
 
     private void processGameSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, String spinToken) {
-        boolean isPrime = isPrime(result);
-        updatePlayerStats(player, isPrime);
-
         AsyncProcessor.submitTask(() -> {
-            pause(10);
             try {
+                boolean isPrime = isPrime(result);
+                updatePlayerStats(player, isPrime);
                 gameSpinRepository.recordSpin(player, serverSeed, clientSeed, nonce, result, isPrime, spinToken);
             } catch (Exception e) {
-                e.printStackTrace(); // TODO - Error handling
+                e.printStackTrace(); // TODO - handle error, maybe a routine to retry
             }
         });
-    }
-
-    // Simulate a delay
-    private void pause(int seconds) {
-        try {
-            Thread.sleep(seconds * 1000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private void updatePlayerStats(@NotNull Player player, boolean isPrime) {

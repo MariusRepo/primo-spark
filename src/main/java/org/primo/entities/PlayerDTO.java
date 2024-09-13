@@ -5,13 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
-public class Play {
+@NoArgsConstructor
+@AllArgsConstructor
+public class PlayerDTO {
     private String playerName;
-    private String spinReference;
-    private int number;
-    private String result; // TODO - Make an enum
+    private int totalSpins;
+    private int wins;
+    private int losses;
 }

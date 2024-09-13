@@ -29,17 +29,4 @@ public class PlayerRepository extends BaseRepository<Player> {
         });
     }
 
-    public void saveOrUpdatePlayer(Player player) {
-        execute(session -> {
-            session.saveOrUpdate(player);
-            return null; // Void method; return type can be adjusted if needed
-        });
-    }
-
-    public void deletePlayer(Player player) {
-        execute(session -> {
-            session.delete(player);
-            return null; // Void method; return type can be adjusted if needed
-        });
-    }
 }

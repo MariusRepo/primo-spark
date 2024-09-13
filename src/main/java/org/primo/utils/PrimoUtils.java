@@ -1,4 +1,4 @@
-package org.primo;
+package org.primo.utils;
 
 import lombok.SneakyThrows;
 

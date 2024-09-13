@@ -34,11 +34,20 @@ public class GameSpinRepository extends BaseRepository<GameSpin> {
 
     public void recordSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, boolean isPrime, String spinToken) {
         execute(session -> {
+            pause(20); // Simulate a delay
             GameSpin gameSpin = new GameSpin(player, serverSeed, clientSeed, nonce, result, isPrime, spinToken, LocalDateTime.now());
             session.save(gameSpin);
             session.merge(player);
             return null;
         });
+    }
+
+    private void pause(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public Optional<GameSpin> findSpinByTokenAndPlayerName(String spinToken, String playerName) {

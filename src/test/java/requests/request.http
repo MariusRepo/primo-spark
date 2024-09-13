@@ -1,16 +1,34 @@
-POST http://localhost:4567/api/v1/spin?username=DEFAULT&clientSeed=RANDOMSEED
+### Endpoint that allows the frontend to start spins
+POST http://localhost:4567/api/v1/spin?username=Player2&clientSeed=RANDOMSEED
 Content-Type: application/json
 
 ####
 
-GET http://localhost:4567/api/v1/result
+### Endpoint that allows the frontend to retrieve spin results
+GET http://localhost:4567/api/v1/status?username=Player2&token=536D44477B882AC
 Content-Type: application/json
 
 ####
 
-GET http://localhost:4567/api/v1/result/DEFAULT
+### Endpoint that allows the frontend to access spin history
+GET http://localhost:4567/api/v1/spins
 Content-Type: application/json
 
 ####
-GET http://localhost:4567/api/v1/status?username=DEFAULT&token=27D9454EFA8A251
+
+### Endpoint that allows the frontend to access spin history for a player
+GET http://localhost:4567/api/v1/spins/DEFAULT
 Content-Type: application/json
+
+####
+
+### Endpoint that allows the frontend to access player details
+GET http://localhost:4567/api/v1/player/DEFAULT
+Content-Type: application/json
+
+####
+
+### Endpoint that allows the frontend to retrieve details for all players
+GET http://localhost:4567/api/v1/players
+Content-Type: application/json
+

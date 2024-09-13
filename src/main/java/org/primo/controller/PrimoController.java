@@ -1,23 +1,25 @@
 package org.primo.controller;
 
-import org.primo.entities.Play;
-import org.primo.exceptions.PlayerException;
-import org.primo.response.PrimoResponse;
-import org.primo.response.ResponseBuilder;
+import org.primo.entities.GameSpinDTO;
+import org.primo.entities.PlayerDTO;
 import org.primo.service.PrimoService;
 
 import java.util.List;
-import java.util.Optional;
 
+import static org.primo.response.ResponseBuilder.successResponse;
+import static org.primo.utils.StatusEnum.PROCESSING;
+import static org.primo.utils.StatusEnum.SUCCESS;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
 public class PrimoController {
 
-    private static final String SPIN_ENDPOINT = "/api/v1/spin";
-    private static final String STATUS_ENDPOINT = "/api/v1/status";
-    private static final String ALL_SPINS_ENDPOINT = "/api/v1/result";
-    private static final String SPINS_BY_PLAYER_ENDPOINT = "/api/v1/result/:playerName";
+    private static final String SPIN = "/api/v1/spin";
+    private static final String SPIN_STATUS = "/api/v1/status";
+    private static final String ALL_SPINS = "/api/v1/spins";
+    private static final String PLAYER = "/api/v1/player/:playerName";
+    private static final String PLAYERS = "/api/v1/players";
+    private static final String PLAYER_SPINS = "/api/v1/spins/:playerName";
 
     private final PrimoService primoService;
 
@@ -27,39 +29,45 @@ public class PrimoController {
     }
 
     private void setupRoutes() {
-        post(SPIN_ENDPOINT, (req, res) -> {
-            String username = validateParam(req.queryParams("username"), "Player name is missing or empty!");
-            String clientSeed = validateParam(req.queryParams("clientSeed"), "Client seed is missing or empty!");
+        post(SPIN, (req, res) -> {
+            String username = primoService.validateParam(req.queryParams("username"), "Player is missing");
+            String clientSeed = primoService.validateParam(req.queryParams("clientSeed"), "Seed is missing");
 
-            String result = primoService.spin(username, clientSeed);
-            return ResponseBuilder.buildSuccessResponse(res, "Check spin status: http://localhost:4567/status/" + result);
+            String responseToken = primoService.spin(username, clientSeed);
+            return successResponse(res, PROCESSING, "Check spin status token: " + responseToken);
         });
 
-        get(STATUS_ENDPOINT, (req, res) -> {
-            String username = validateParam(req.queryParams("username"), "Player name is missing or empty!");
-            String token = validateParam(req.queryParams("token"), "Token is missing or empty!");
+        get(SPIN_STATUS, (req, res) -> {
+            String username = primoService.validateParam(req.queryParams("username"), "Player is missing!");
+            String token = primoService.validateParam(req.queryParams("token"), "Token is missing!");
 
-            Play play = primoService.checkSpinStatus(username, token);
-            return ResponseBuilder.buildSuccessResponse(res, new PrimoResponse(List.of(play), "All spins!"));
+            GameSpinDTO gameSpinDTO = primoService.checkSpinStatus(username, token);
+            return successResponse(res, SUCCESS, List.of(gameSpinDTO), "Spin status for " + token);
         });
 
-        get(ALL_SPINS_ENDPOINT, (req, res) -> {
-            List<Play> plays = primoService.allSpins();
-            return ResponseBuilder.buildSuccessResponse(res, new PrimoResponse(plays, "All spins!"));
+        get(ALL_SPINS, (req, res) -> {
+            List<GameSpinDTO> gameSpinDTOS = primoService.allSpins();
+            return successResponse(res, SUCCESS, gameSpinDTOS, "List of all spins");
         });
 
-        get(SPINS_BY_PLAYER_ENDPOINT, (req, res) -> {
-            String playerName = validateParam(req.params(":playerName"), "Player name is missing or empty!");
+        get(PLAYER_SPINS, (req, res) -> {
+            String playerName = primoService.validateParam(req.params(":playerName"), "Player is missing");
 
-            List<Play> plays = primoService.playerSpins(playerName);
-            return ResponseBuilder.buildSuccessResponse(res, new PrimoResponse(plays, "List of spins for: " + playerName));
+            List<GameSpinDTO> gameSpinDTOS = primoService.playerSpins(playerName);
+            return successResponse(res, SUCCESS, gameSpinDTOS, "List of spins for: " + playerName);
         });
-    }
 
-    private String validateParam(String paramValue, String errorMessage) {
-        return Optional.ofNullable(paramValue)
-                .filter(s -> !s.trim().isEmpty())
-                .orElseThrow(() -> new PlayerException(errorMessage));
+        get(PLAYER, (req, res) -> {
+            String playerName = primoService.validateParam(req.params(":playerName"), "Player is missing");
+
+            PlayerDTO playerDTO = primoService.playerDetails(playerName);
+            return successResponse(res, SUCCESS, playerDTO, "Player details for: " + playerName);
+        });
+
+        get(PLAYERS, (req, res) -> {
+            List<PlayerDTO> playerDTO = primoService.playersDetails();
+            return successResponse(res, SUCCESS, playerDTO);
+        });
     }
 
 }
