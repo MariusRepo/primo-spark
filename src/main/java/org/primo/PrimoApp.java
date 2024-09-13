@@ -10,10 +10,12 @@ import spark.Spark;
 
 import static org.primo.config.DataInitializer.insertDBData;
 import static org.primo.config.HibernateConfig.getSessionFactory;
+import static spark.Spark.staticFiles;
 
 public class PrimoApp {
 
     public static void main(String[] args) {
+        staticFiles.location("/public");
         SessionFactory sessionFactory = getSessionFactory();
 
         GameSpinRepository gameSpinRepository = new GameSpinRepository(sessionFactory);
