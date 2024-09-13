@@ -1,0 +1,39 @@
+## Endpoint that allows the frontend to start spins
+POST http://{{host}}:{{port}}/api/v1/spin?username={{username}}&clientSeed={{seed}}
+Content-Type: application/json
+
+> {%
+  const message = response.body.data;
+  const token = message.split(": ").pop();
+  client.global.set("token", token.trim());
+%}
+
+####
+
+## Endpoint that allows the frontend to retrieve spin results (artificially set a sleep of 5 seconds)
+GET http://{{host}}:{{port}}/api/v1/status?username={{username}}&token={{token}}
+Content-Type: application/json
+
+####
+
+## Endpoint that allows the frontend to access spin history
+GET http://{{host}}:{{port}}/api/v1/spins
+Content-Type: application/json
+
+####
+
+## Endpoint that allows the frontend to access spin history for a player
+GET http://{{host}}:{{port}}/api/v1/spins/{{username}}
+Content-Type: application/json
+
+####
+
+## Endpoint that allows the frontend to access player details
+GET http://{{host}}:{{port}}/api/v1/player/{{username}}
+Content-Type: application/json
+
+####
+
+## Endpoint that allows the frontend to retrieve details for all players
+GET http://{{host}}:{{port}}/api/v1/players
+Content-Type: application/json
