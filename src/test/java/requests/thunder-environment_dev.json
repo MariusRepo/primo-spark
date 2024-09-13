@@ -1,0 +1,22 @@
+{
+    "clientName": "Thunder Client",
+    "environmentName": "dev",
+    "environmentId": "ee7af1e0-812a-4794-adf7-82f13b27ce64",
+    "dateExported": "2024-09-13T20:11:32.475Z",
+    "version": "1.2",
+    "variables": [
+        {
+            "name": "host",
+            "value": "localhost"
+        },
+        {
+            "name": "port",
+            "value": "4567"
+        },
+        {
+            "name": "username",
+            "value": "Player1"
+        }
+    ],
+    "ref": "to9tlrhWXDweNwONot7XPqBPZivuHhSbeidZkRDl6ZTvH_F7uiU5qmqyi6epFNGz"
+}

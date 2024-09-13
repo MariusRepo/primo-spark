@@ -1,0 +1,137 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "Game Spin API",
+    "collectionId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+    "dateExported": "2024-09-13T20:11:14.378Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "a35a8f87-4b4d-4d6e-ae2d-6e5e0eaf0fb8",
+            "colId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+            "containerId": "",
+            "name": "Start Spin",
+            "url": "http://{{host}}:{{port}}/api/v1/spin?username={{username}}&clientSeed={{seed}}",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2024-09-13T20:03:01.518Z",
+            "modified": "2024-09-13T20:06:08.348Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "params": [
+                {
+                    "name": "username",
+                    "value": "{{username}}",
+                    "isPath": false
+                },
+                {
+                    "name": "clientSeed",
+                    "value": "{{seed}}",
+                    "isPath": false
+                }
+            ]
+        },
+        {
+            "_id": "995bc4df-11bd-4777-bffc-d591d2cdf100",
+            "colId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+            "containerId": "",
+            "name": "Retrieve Spin Results",
+            "url": "http://{{host}}:{{port}}/api/v1/status?username={{username}}&token=E2180147FA90E45",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2024-09-13T20:03:01.519Z",
+            "modified": "2024-09-13T20:09:54.679Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "params": [
+                {
+                    "name": "username",
+                    "value": "{{username}}",
+                    "isPath": false
+                },
+                {
+                    "name": "token",
+                    "value": "E2180147FA90E45",
+                    "isPath": false
+                }
+            ]
+        },
+        {
+            "_id": "a033cf41-b901-42bb-a9b6-d68892af3140",
+            "colId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+            "containerId": "",
+            "name": "Get Spin History",
+            "url": "http://{{host}}:{{port}}/api/v1/spins",
+            "method": "GET",
+            "sortNum": 30000,
+            "created": "2024-09-13T20:03:01.520Z",
+            "modified": "2024-09-13T20:03:01.520Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ]
+        },
+        {
+            "_id": "a2318c9d-61ce-4814-84f1-97880d1f0c4c",
+            "colId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+            "containerId": "",
+            "name": "Get Player Spin History",
+            "url": "http://{{host}}:{{port}}/api/v1/spins/{{username}}",
+            "method": "GET",
+            "sortNum": 40000,
+            "created": "2024-09-13T20:03:01.521Z",
+            "modified": "2024-09-13T20:03:01.521Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ]
+        },
+        {
+            "_id": "0aea7394-aad7-4d9a-b5c3-5c9eb9aff62f",
+            "colId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+            "containerId": "",
+            "name": "Get Player Details",
+            "url": "http://{{host}}:{{port}}/api/v1/player/{{username}}",
+            "method": "GET",
+            "sortNum": 50000,
+            "created": "2024-09-13T20:03:01.522Z",
+            "modified": "2024-09-13T20:03:01.522Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ]
+        },
+        {
+            "_id": "4ee7399f-2e03-4dc6-ae90-4d466e53ce35",
+            "colId": "a8d5cd54-61e1-4ece-aaab-f8c47040cee5",
+            "containerId": "",
+            "name": "Get All Players",
+            "url": "http://{{host}}:{{port}}/api/v1/players",
+            "method": "GET",
+            "sortNum": 60000,
+            "created": "2024-09-13T20:03:01.523Z",
+            "modified": "2024-09-13T20:03:01.523Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ]
+        }
+    ],
+    "ref": "14V6T8RD0DoQRkdtDJzU4xOU0qzs6prGGM05D7PyS9gm6EBJpl7v31BUqyK77F3nHBhb3-88j7_QpK6hOF7TgQ"
+}
