@@ -27,3 +27,4 @@ java -cp target/PrimoSpark-1.0-SNAPSHOT.jar org.primo.PrimoApp
 ```
 # Testing
 For testing use /test/request.http or the swagger.yaml file to have an overview for the endpoints
+For testing in VS Code use the Thunder Client plugin and the thunder-collection.json and thunder-environment_dev.json
