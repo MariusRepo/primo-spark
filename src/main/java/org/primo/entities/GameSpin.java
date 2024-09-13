@@ -34,22 +34,14 @@ public class GameSpin {
     @Column(name = "nonce", nullable = false)
     private int nonce;
 
-    @Column(name = "win")
-    private boolean win;
-
-    @Column(name = "result", nullable = false)
-    private int result;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public GameSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, boolean win, String referenceToken, LocalDateTime createdAt) {
+    public GameSpin(Player player, String serverSeed, String clientSeed, int nonce, String referenceToken, LocalDateTime createdAt) {
         this.player = player;
         this.serverSeed = serverSeed;
         this.clientSeed = clientSeed;
         this.nonce = nonce;
-        this.result = result;
-        this.win = win;
         this.referenceToken = referenceToken;
         this.createdAt = createdAt;
     }

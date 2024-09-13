@@ -2,7 +2,7 @@ package org.primo.utils;
 
 public enum StatusEnum {
     SUCCESS("SUCCESS"),
-    ERROR("ERROR"),
+    COMPLETED("COMPLETED"),
     PROCESSING("PROCESSING"),
     FAILURE("FAILURE");
 
@@ -10,10 +10,6 @@ public enum StatusEnum {
 
     StatusEnum(String message) {
         this.message = message;
-    }
-
-    public String str() {
-        return message;
     }
 
     @Override

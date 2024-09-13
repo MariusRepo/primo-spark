@@ -7,30 +7,31 @@ import org.primo.entities.Player;
 import org.primo.entities.PlayerDTO;
 import org.primo.exceptions.ParameterException;
 import org.primo.exceptions.PlayerException;
-import org.primo.repositories.PlayerRepository;
-import org.primo.repositories.GameSpinRepository;
 import org.primo.exceptions.SpinException;
+import org.primo.repositories.GameSpinRepository;
+import org.primo.repositories.PlayerRepository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.primo.service.SpinCache.getCache;
 import static org.primo.utils.PrimoUtils.generateRandomNonce;
 import static org.primo.utils.PrimoUtils.generateRandomSeed;
 import static org.primo.utils.PrimoUtils.generateSecureNumber;
 import static org.primo.utils.PrimoUtils.generateSpinToken;
 import static org.primo.utils.PrimoUtils.isPrime;
+import static org.primo.utils.ResultEnum.LOSS;
+import static org.primo.utils.ResultEnum.WIN;
 
 public class PrimoService {
 
-    public static final String WIN = "WIN";
-    public static final String LOSS = "LOSS";
     private final GameSpinRepository gameSpinRepository;
     private final PlayerRepository playerRepository;
-
     private final ExecutorService executorService;
 
     public PrimoService(GameSpinRepository gameSpinRepository, PlayerRepository playerRepository) {
@@ -49,10 +50,8 @@ public class PrimoService {
         int nonce = generateRandomNonce();
         String serverSeed = generateRandomSeed();
 
-        int result = generateSecureNumber(serverSeed, clientSeed, nonce);
-
         // Update DB asynchronously and atomic
-        return recordSpinDetails(player, serverSeed, clientSeed, nonce, result);
+        return recordSpinDetails(player, serverSeed, clientSeed, nonce);
     }
 
     public List<GameSpinDTO> allSpins() {
@@ -64,7 +63,8 @@ public class PrimoService {
     }
 
     public GameSpinDTO spinToDTO(GameSpin gameSpins) {
-        return new GameSpinDTO(gameSpins.getPlayer().getPlayerName(), gameSpins.getReferenceToken(), gameSpins.getResult(), gameSpins.isWin() ? WIN : LOSS);
+        int result = generateSecureNumber(gameSpins.getClientSeed(), gameSpins.getClientSeed(), gameSpins.getNonce());
+        return new GameSpinDTO(gameSpins.getPlayer().getPlayerName(), gameSpins.getReferenceToken(), result, isPrime(result) ? WIN.getMessage() : LOSS.getMessage());
     }
 
     public List<GameSpinDTO> spinToDTO(@NotNull List<GameSpin> gameSpins) {
@@ -74,7 +74,7 @@ public class PrimoService {
     }
 
     public PlayerDTO playerToDTO(Player player) {
-        return new PlayerDTO(player.getPlayerName(), player.getTotalSpins(), player.getWins(), player.getWins());
+        return new PlayerDTO(player.getPlayerName(), player.getTotalSpins(), player.getWins(), player.getLosses());
     }
 
     public List<PlayerDTO> playerToDTO(@NotNull List<Player> players) {
@@ -84,9 +84,29 @@ public class PrimoService {
     }
 
     public GameSpinDTO checkSpinStatus(String playerName, String spinToken) {
+        CachedSpin cachedSpin = getCache().get(spinToken);
+        if (cachedSpin == null) {
+            GameSpinDTO gameSpin = checkDBStatus(playerName, spinToken);
+            if (gameSpin != null) {
+                cachedSpin = new CachedSpin(gameSpin.getPlayerName(), spinToken);
+                cachedSpin.setStatus(gameSpin.getResult());
+                cachedSpin.setResult(gameSpin.getNumber());
+                getCache().put(spinToken, cachedSpin);
+            } else {
+                throw new SpinException("Spin is missing or processing ...");
+            }
+        }
+        return cacheSpinToDTO(cachedSpin);
+    }
+
+    private GameSpinDTO cacheSpinToDTO(CachedSpin cachedSpin) {
+        return new GameSpinDTO(cachedSpin.getPlayerName(), cachedSpin.getSpinToken(), cachedSpin.getResult(), cachedSpin.getStatus());
+    }
+
+    public GameSpinDTO checkDBStatus(String playerName, String spinToken) {
         return gameSpinRepository.findSpinByTokenAndPlayerName(spinToken, playerName)
                 .map(this::spinToDTO)
-                .orElseThrow(() -> new SpinException("Spin is missing or processing ..."));
+                .orElse(null);
     }
 
     public PlayerDTO playerDetails(String playerName) {
@@ -107,22 +127,36 @@ public class PrimoService {
                 .orElseThrow(() -> new ParameterException(errorMessage));
     }
 
-    private String recordSpinDetails(Player player, String serverSeed, String clientSeed, int nonce, int result) {
+    private String recordSpinDetails(Player player, String serverSeed, String clientSeed, int nonce) {
         String spinToken = generateSpinToken();
-        CompletableFuture.runAsync(() -> processGameSpin(player, serverSeed, clientSeed, nonce, result, spinToken), executorService);
+        CompletableFuture.runAsync(() -> processGameSpin(player, serverSeed, clientSeed, nonce, spinToken), executorService);
         return spinToken;
     }
 
-    private void processGameSpin(Player player, String serverSeed, String clientSeed, int nonce, int result, String spinToken) {
-        AsyncProcessor.submitTask(() -> {
+    private CompletableFuture<Void> processGameSpin(Player player, String serverSeed, String clientSeed, int nonce, String spinToken) {
+        CachedSpin cachedSpin = new CachedSpin(player.getPlayerName(), spinToken);
+        getCache().put(spinToken, cachedSpin);
+        return CompletableFuture.runAsync(() -> {
+            pause(); // Simulate load
             try {
+                int result = generateSecureNumber(serverSeed, clientSeed, nonce);
                 boolean isPrime = isPrime(result);
                 updatePlayerStats(player, isPrime);
-                gameSpinRepository.recordSpin(player, serverSeed, clientSeed, nonce, result, isPrime, spinToken);
+                gameSpinRepository.recordSpin(player, serverSeed, clientSeed, nonce, spinToken);
+                cachedSpin.setStatus(isPrime ? WIN.toString() : LOSS.toString());
+                cachedSpin.setResult(result);
             } catch (Exception e) {
-                e.printStackTrace(); // TODO - handle error, maybe a routine to retry
+                e.printStackTrace();
             }
         });
+    }
+
+    private void pause() {
+        try {
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void updatePlayerStats(@NotNull Player player, boolean isPrime) {

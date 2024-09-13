@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.primo.utils.StatusEnum;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,6 +13,6 @@ import lombok.Setter;
 public class GameSpinDTO {
     private String playerName;
     private String spinReference;
-    private int number;
+    private Integer number;
     private String result;
 }

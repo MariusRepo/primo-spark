@@ -8,7 +8,7 @@ import org.primo.repositories.PlayerRepository;
 import org.primo.service.PrimoService;
 import spark.Spark;
 
-import static org.primo.config.DataInitializer.addDBUsers;
+import static org.primo.config.DataInitializer.insertDBData;
 import static org.primo.config.HibernateConfig.getSessionFactory;
 
 public class PrimoApp {
@@ -18,15 +18,10 @@ public class PrimoApp {
 
         GameSpinRepository gameSpinRepository = new GameSpinRepository(sessionFactory);
         PlayerRepository playerRepository = new PlayerRepository(sessionFactory);
-
-        PrimoService primoService = new PrimoService(gameSpinRepository, playerRepository);
-
-        new PrimoController(primoService);
+        new PrimoController(new PrimoService(gameSpinRepository, playerRepository));
         new PrimoExceptionHandler();
 
-        // Add users for testing purposes
-        addDBUsers();
-
+        insertDBData(gameSpinRepository, playerRepository); // Add users for testing purposes
         Spark.init();
     }
 }

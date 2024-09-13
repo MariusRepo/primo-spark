@@ -29,4 +29,11 @@ public class PlayerRepository extends BaseRepository<Player> {
         });
     }
 
+    public void saveOrUpdatePlayer(Player player) {
+        execute(session -> {
+            session.saveOrUpdate(player);
+            return null;
+        });
+    }
+
 }

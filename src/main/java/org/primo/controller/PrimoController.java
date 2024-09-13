@@ -42,7 +42,7 @@ public class PrimoController {
             String token = primoService.validateParam(req.queryParams("token"), "Token is missing!");
 
             GameSpinDTO gameSpinDTO = primoService.checkSpinStatus(username, token);
-            return successResponse(res, SUCCESS, List.of(gameSpinDTO), "Spin status for " + token);
+            return successResponse(res, SUCCESS, gameSpinDTO, "Spin status for " + token);
         });
 
         get(ALL_SPINS, (req, res) -> {

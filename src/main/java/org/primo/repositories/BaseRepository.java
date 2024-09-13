@@ -25,7 +25,7 @@ public abstract class BaseRepository<T> {
                 return result;
             } catch (Exception e) {
                 tx.rollback();
-                throw e; // Handle exception or rethrow
+                throw e;
             }
         }
     }

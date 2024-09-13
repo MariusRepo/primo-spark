@@ -38,7 +38,7 @@ public class PrimoUtils {
 
     // Hash using SHA-256
     @SneakyThrows
-    private static String hash(String input)  {
+    private static String hash(String input) {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] encodedHash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
         return bytesToHex(encodedHash);
