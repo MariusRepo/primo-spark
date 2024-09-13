@@ -1,0 +1,181 @@
+openapi: 3.0.0
+info:
+  title: Primo API
+  description: API for managing game spins and player details.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4567
+    description: Local development server
+
+paths:
+  /api/v1/spin:
+    post:
+      summary: Start a new spin
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Username of the player.
+        - name: clientSeed
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Client seed for the spin.
+      responses:
+        '200':
+          description: Spin started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Check spin status token: AA5AFE4D9B458F3"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/v1/status:
+    get:
+      summary: Retrieve game spin status
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Username of the player.
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Token for the spin status.
+      responses:
+        '200':
+          description: Spin status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  result:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      details:
+                        type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/v1/spins:
+    get:
+      summary: Retrieve all spins
+      responses:
+        '200':
+          description: List of all spins
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    token:
+                      type: string
+                    details:
+                      type: string
+
+  /api/v1/spins/player/{playerName}:
+    get:
+      summary: Retrieve spins for a specific player
+      parameters:
+        - name: playerName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the player.
+      responses:
+        '200':
+          description: List of spins for the player
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    token:
+                      type: string
+                    details:
+                      type: string
+
+  /api/v1/player/{playerName}:
+    get:
+      summary: Retrieve details for a specific player
+      parameters:
+        - name: playerName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the player.
+      responses:
+        '200':
+          description: Player details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playerName:
+                    type: string
+                  totalSpins:
+                    type: integer
+                  wins:
+                    type: integer
+                  losses:
+                    type: integer
+
+  /api/v1/players:
+    get:
+      summary: Retrieve all players
+      responses:
+        '200':
+          description: List of all players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    playerName:
+                      type: string
+                    totalSpins:
+                      type: integer
+                    wins:
+                      type: integer
+                    losses:
+                      type: integer

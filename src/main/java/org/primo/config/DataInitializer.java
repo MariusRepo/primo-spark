@@ -19,8 +19,8 @@ public class DataInitializer {
             for (int j = 0; j < i; j++) {
                 String client = generateRandomSeed();
                 String server = generateRandomSeed();
-                int nunce = generateRandomNonce();
-                int result = generateSecureNumber(client, server, nunce);
+                int nonce = generateRandomNonce();
+                int result = generateSecureNumber(client, server, nonce);
                 boolean isPrime = isPrime(result);
                 player.incrementSpins();
                 if (isPrime) {
@@ -28,7 +28,7 @@ public class DataInitializer {
                 } else {
                     player.incrementLosses();
                 }
-                gameSpinRepository.recordSpin(player, server, client, nunce, generateSpinToken());
+                gameSpinRepository.recordSpin(player, server, client, nonce, generateSpinToken());
                 playerRepository.saveOrUpdatePlayer(player);
             }
         }

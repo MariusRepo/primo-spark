@@ -29,6 +29,7 @@ public class PrimoController {
     }
 
     private void setupRoutes() {
+        // NOTE: Create endpoints that allow the frontend to start spins.
         post(SPIN, (req, res) -> {
             String username = primoService.validateParam(req.queryParams("username"), "Player is missing");
             String clientSeed = primoService.validateParam(req.queryParams("clientSeed"), "Seed is missing");
@@ -37,6 +38,7 @@ public class PrimoController {
             return successResponse(res, PROCESSING, "Check spin status token: " + responseToken);
         });
 
+        // NOTE: Create endpoints that allow the frontend to retrieve game results.
         get(SPIN_STATUS, (req, res) -> {
             String username = primoService.validateParam(req.queryParams("username"), "Player is missing!");
             String token = primoService.validateParam(req.queryParams("token"), "Token is missing!");
@@ -45,6 +47,7 @@ public class PrimoController {
             return successResponse(res, SUCCESS, gameSpinDTO, "Spin status for " + token);
         });
 
+        // NOTE: Create endpoints that allow the frontend to access spin history.
         get(ALL_SPINS, (req, res) -> {
             List<GameSpinDTO> gameSpinDTOS = primoService.allSpins();
             return successResponse(res, SUCCESS, gameSpinDTOS, "List of all spins");

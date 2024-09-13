@@ -7,10 +7,12 @@ import org.primo.repositories.GameSpinRepository;
 import org.primo.repositories.PlayerRepository;
 import org.primo.service.PrimoService;
 import spark.Spark;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static org.primo.config.DataInitializer.insertDBData;
 import static org.primo.config.HibernateConfig.getSessionFactory;
 
+@EnableSwagger2
 public class PrimoApp {
 
     public static void main(String[] args) {

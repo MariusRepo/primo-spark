@@ -129,6 +129,7 @@ public class PrimoService {
 
     private String recordSpinDetails(Player player, String serverSeed, String clientSeed, int nonce) {
         String spinToken = generateSpinToken();
+        // NOTE: "Ensure the system can handle multiple simultaneous users without issues."
         CompletableFuture.runAsync(() -> processGameSpin(player, serverSeed, clientSeed, nonce, spinToken), executorService);
         return spinToken;
     }
@@ -139,8 +140,10 @@ public class PrimoService {
         return CompletableFuture.runAsync(() -> {
             pause(); // Simulate load
             try {
+                // NOTE: "Manage the overall game flow, ensuring correct win/loss determination."
                 int result = generateSecureNumber(serverSeed, clientSeed, nonce);
                 boolean isPrime = isPrime(result);
+                // NOTE: "Track each user's spin results, including wins and losses."
                 updatePlayerStats(player, isPrime);
                 gameSpinRepository.recordSpin(player, serverSeed, clientSeed, nonce, spinToken);
                 cachedSpin.setStatus(isPrime ? WIN.toString() : LOSS.toString());
@@ -153,7 +156,7 @@ public class PrimoService {
 
     private void pause() {
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

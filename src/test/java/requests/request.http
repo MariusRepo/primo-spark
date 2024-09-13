@@ -10,7 +10,7 @@ Content-Type: application/json
 
 ####
 
-## Endpoint that allows the frontend to retrieve spin results (artificially set a sleep of 10 seconds)
+## Endpoint that allows the frontend to retrieve spin results (artificially set a sleep of 5 seconds)
 GET http://{{host}}:{{port}}/api/v1/status?username={{username}}&token={{token}}
 Content-Type: application/json
 
